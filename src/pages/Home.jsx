@@ -1,17 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import JobList from '../components/JobList';
+import JobSearch from '../components/JobSearch';
 
-const HomeContent = () => {
+const Home = () => {
   const { user, logout } = useAuth();
+  const [jobs, setJobs] = useState([]); // jobs filtered hoặc tất cả
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold mb-6">Welcome to JobMate</h1>
-      <p className="text-lg mb-4">Hello, {user.name}! You are logged in as {user.role}</p>
+    <MainLayout>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold">Welcome, {user.name}</h1>
+        <button
+          onClick={logout}
+          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+        >
+          Logout
+        </button>
+      </div>
 
-      <div className="flex space-x-4">
+      <div className="flex space-x-4 mb-4">
         {user.role === 'client' && (
           <Link
             to="/create-job"
@@ -28,20 +38,11 @@ const HomeContent = () => {
         </Link>
       </div>
 
-      <button
-        onClick={logout}
-        className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-      >
-        Logout
-      </button>
-    </div>
-  );
-};
+      {/* Job Search */}
+      <JobSearch onResults={setJobs} />
 
-const Home = () => {
-  return (
-    <MainLayout>
-      <HomeContent />
+      {/* Job List */}
+      <JobList jobs={jobs} />
     </MainLayout>
   );
 };
