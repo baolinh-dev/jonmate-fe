@@ -1,6 +1,12 @@
+import React from 'react';
+import { AuthProvider } from './context/AuthContext';
+import AppRoutes from './routes/AppRoutes';
+
 function App() {
   return (
-    <h1 className="text-4xl text-blue-500 font-bold">JobMate Frontend</h1>
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
 
