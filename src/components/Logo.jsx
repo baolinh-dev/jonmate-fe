@@ -11,7 +11,7 @@ import JobMateIcon from '../assets/images/Jobmate_Logo.png';
  * @param {string} props.className - Các class Tailwind CSS để tùy chỉnh kích thước Icon.
  * @param {boolean} props.asLink - Có bọc trong thẻ <a> dẫn về trang chủ hay không. Mặc định là true.
  */
-const LogoIcon = ({ className = 'h-8 w-8', asLink = true }) => {
+const LogoIcon = ({ className = 'h-14 w-14', asLink = true }) => {
   const IconElement = (
     <img 
       src={JobMateIcon} 

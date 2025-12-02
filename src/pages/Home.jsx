@@ -1,28 +1,30 @@
+// File: src/pages/Home.jsx (ĐÃ CẬP NHẬT)
+
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import JobList from '../components/JobList';
-import JobPage from './JobPage';
+import HeroSection from '../components/HeroSection'; // 1. Import HeroSection
+import JobPage from './JobPage'; // Giả định JobPage là nơi hiển thị danh sách
 
 const Home = () => {
   const { user, logout } = useAuth();
-  const [jobs, setJobs] = useState([]); // jobs filtered hoặc tất cả
+  const [jobs, setJobs] = useState([]); 
 
   return (
     <MainLayout>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">Welcome, {user.name}</h1>
-        <button
-          onClick={logout}
-          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
+        
+      {/* 2. Đặt Hero Section ở đây */}
+      <HeroSection />
+
+      {/* 3. Tiêu đề cho danh sách công việc */}
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 mt-8">
+          {user ? `Công việc gần đây cho ${user.role}` : 'Các công việc mới nhất'}
+      </h2>
 
       {/* Job List */}
-      <JobPage />
+      {/* Lưu ý: JobPage có vẻ là một wrapper. Bạn có thể thay thế bằng JobList nếu muốn */}
+      <JobPage /> 
+      
     </MainLayout>
   );
 };
