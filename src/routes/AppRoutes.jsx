@@ -2,40 +2,50 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
-import Home from '../pages/Home';
+import Home from '../pages/Home'; 
+import CreateJob from '../pages/CreateJob';
 import PrivateRoute from './PrivateRoute';
 import { useAuth } from '../context/AuthContext';
 
 const AppRoutes = () => {
-  const { user, loading } = useAuth();
+    const { user, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
+    if (loading) return <div>Loading...</div>;
 
-  return (
-    <Router>
-      <Routes>
-        {/* Trang đầu tiên */}
-        <Route path="/" element={<Navigate to="/login" />} />
+    return (
+        <Router>
+            <Routes>
+                {/* Trang đầu tiên */}
+                <Route path="/" element={<Navigate to="/login" />} />
 
-        {/* Login/Register */}
-        <Route path="/login" element={user ? <Navigate to="/home" /> : <Login />} />
-        <Route path="/register" element={user ? <Navigate to="/home" /> : <Register />} />
+                {/* Login/Register */}
+                <Route path="/login" element={user ? <Navigate to="/home" /> : <Login />} />
+                <Route path="/register" element={user ? <Navigate to="/home" /> : <Register />} />
 
-        {/* Home sau khi login */}
-        <Route
-          path="/home"
-          element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          }
-        />
+                {/* Home sau khi login */}
+                <Route
+                    path="/home"
+                    element={
+                        <PrivateRoute>
+                            <Home />
+                        </PrivateRoute>
+                    }
+                />
 
-        {/* 404 */}
-        <Route path="*" element={<div>404 Not Found</div>} />
-      </Routes>
-    </Router>
-  );
+                <Route
+                    path="/create-job"
+                    element={
+                        <PrivateRoute>
+                            <CreateJob />
+                        </PrivateRoute>
+                    }
+                />
+
+                {/* 404 */}
+                <Route path="*" element={<div>404 Not Found</div>} />
+            </Routes>
+        </Router>
+    );
 };
 
 export default AppRoutes;

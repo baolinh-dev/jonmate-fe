@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import JobList from '../components/JobList';
-import JobSearch from '../components/JobSearch';
+import JobPage from './JobPage';
 
 const Home = () => {
   const { user, logout } = useAuth();
@@ -21,28 +21,8 @@ const Home = () => {
         </button>
       </div>
 
-      <div className="flex space-x-4 mb-4">
-        {user.role === 'client' && (
-          <Link
-            to="/create-job"
-            className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
-          >
-            Create Job
-          </Link>
-        )}
-        <Link
-          to="/jobs"
-          className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"
-        >
-          Browse Jobs
-        </Link>
-      </div>
-
-      {/* Job Search */}
-      <JobSearch onResults={setJobs} />
-
       {/* Job List */}
-      <JobList jobs={jobs} />
+      <JobPage />
     </MainLayout>
   );
 };
