@@ -1,0 +1,12 @@
+/* Đảm bảo danh sách không có dấu chấm mặc định */
+.pagination-container {
+  list-style: none; 
+  padding: 0;
+  margin: 0;
+}
+
+/* Ẩn các dấu chấm mặc định của trình duyệt cho các liên kết */
+.pagination-container a {
+    text-decoration: none;
+    outline: none;
+}
