@@ -1,4 +1,4 @@
-// src/routes/AppRoutes.js (Đã sửa đổi)
+// src/routes/AppRoutes.js (Đã sửa)
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -21,8 +21,10 @@ const AppRoutes = () => {
         <Router>
             <Routes>
 
-                {/* Điều hướng mặc định: Nếu chưa đăng nhập thì tới /jobs, nếu đăng nhập thì tới /home */}
-                <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/jobs" />} />
+                {/* SỬA ĐỔI: Route mặc định "/" */}
+                {/* Nếu đã đăng nhập: Chuyển về /home. 
+                    Nếu chưa đăng nhập (đã đăng xuất): Chuyển về /login. */}
+                <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
 
                 {/* 1. PUBLIC ROUTES (Không cần đăng nhập) */}
                 
@@ -59,17 +61,17 @@ const AppRoutes = () => {
                 <Route
                     path="/create-job"
                     element={
-                        <PrivateRoute>
+                        <PrivateRoute requiredRole="client"> {/* Có thể thêm kiểm tra vai trò tại đây */}
                             <CreateJob />
                         </PrivateRoute>
                     }
                 /> 
 
-                {/* Create Job */}
+                {/* Client Applications */}
                 <Route
                     path="/client/application"
                     element={
-                        <PrivateRoute>
+                        <PrivateRoute requiredRole="client"> {/* Có thể thêm kiểm tra vai trò tại đây */}
                             <ClientAllApplications />
                         </PrivateRoute>
                     }
