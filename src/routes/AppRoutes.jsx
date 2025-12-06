@@ -10,6 +10,7 @@ import JobPage from '../pages/JobPage';
 import JobDetail from '../pages/JobDetail';
 import PrivateRoute from './PrivateRoute';
 import { useAuth } from '../context/AuthContext';
+import ClientAllApplications from '../pages/ClientAllApplications';
 
 const AppRoutes = () => {
     const { user, loading } = useAuth();
@@ -60,6 +61,16 @@ const AppRoutes = () => {
                     element={
                         <PrivateRoute>
                             <CreateJob />
+                        </PrivateRoute>
+                    }
+                /> 
+
+                {/* Create Job */}
+                <Route
+                    path="/client/application"
+                    element={
+                        <PrivateRoute>
+                            <ClientAllApplications />
                         </PrivateRoute>
                     }
                 />

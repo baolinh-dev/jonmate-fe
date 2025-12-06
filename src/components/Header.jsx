@@ -34,7 +34,7 @@ const Header = ({ onMenuToggle }) => {
   const navLinks = [
     { name: 'Tất cả công việc', path: '/jobs', roles: ['freelancer', 'client'] },
     { name: 'Ứng tuyển', path: '/my-applications', roles: ['freelancer'] },
-    { name: 'Quản lý dự án', path: '/my-projects', roles: ['client'] },
+    { name: 'Quản lý Application', path: '/client/application', roles: ['client'] },
   ];
 
   return (
