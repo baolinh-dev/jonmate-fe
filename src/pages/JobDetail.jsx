@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom'; // Dùng để lấy ID từ URL
 import api from '../api/api'; // Đường dẫn đến file API đã cấu hình
 import ReusableHeading from '../components/ReusableHeading';
-// Giả định bạn đã cài đặt Font Awesome bằng NPM
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTag, faDollarSign, faUserTie, faCalendarAlt, faCodeBranch, faTimesCircle, faCheckCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import MainLayout from '../layouts/MainLayout';
@@ -76,7 +75,6 @@ const JobDetail = () => {
     }
 
     if (!job) {
-        // Trường hợp không có lỗi nhưng job vẫn null (hiếm khi xảy ra nếu logic lỗi đúng)
         return (
             <div className="max-w-4xl mx-auto px-4 py-20 text-center text-gray-600 bg-gray-50 border border-gray-300 rounded-xl shadow-lg">
                 <h2 className="text-2xl font-bold mb-4">Không tìm thấy Công việc</h2>
@@ -102,9 +100,14 @@ const JobDetail = () => {
                         {/* Mô tả Công việc */}
                         <section className="bg-white p-6 rounded-xl shadow-lg mb-8">
                             <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">Mô Tả Chi Tiết</h2>
-                            <div className="text-gray-700 leading-relaxed whitespace-pre-line">
-                                {job.description}
-                            </div>
+                            
+                            {/* 💡 PHẦN ĐÃ SỬA: SỬ DỤNG DANGEROUSLYSETINNERHTML */}
+                            <div 
+                                className="text-gray-700 leading-relaxed prose max-w-none" 
+                                dangerouslySetInnerHTML={{ __html: job.description }} 
+                            />
+                            {/* 💡 KẾT THÚC PHẦN SỬA */}
+                            
                         </section>
 
                         {/* Kỹ năng Yêu cầu */}
@@ -164,7 +167,7 @@ const JobDetail = () => {
                                 </p>
 
                                 {/* Thêm Category nếu bạn đã populate nó ở BE, nếu không hãy bỏ qua */}
-                                {job.category && (
+                                {job.category && job.category.name && (
                                     <p className="flex items-center">
                                         <FontAwesomeIcon icon={faTag} className="mr-3 text-purple-500" />
                                         Danh mục:

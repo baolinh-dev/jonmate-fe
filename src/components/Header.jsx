@@ -32,7 +32,7 @@ const Header = ({ onMenuToggle }) => {
 
   // Các liên kết chính hiển thị trên Desktop
   const navLinks = [
-    { name: 'Tìm việc', path: '/browse-jobs', roles: ['freelancer', 'client'] },
+    { name: 'Tất cả công việc', path: '/jobs', roles: ['freelancer', 'client'] },
     { name: 'Ứng tuyển', path: '/my-applications', roles: ['freelancer'] },
     { name: 'Quản lý dự án', path: '/my-projects', roles: ['client'] },
   ];

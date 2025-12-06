@@ -6,7 +6,7 @@ import MainLayout from '../layouts/MainLayout';
 import HeroSection from '../components/HeroSection'; // 1. Import HeroSection
 import JobPage from './JobPage'; // Giả định JobPage là nơi hiển thị danh sách
 import CategorySection from '../components/CategorySection';
-
+import JobList from '../components/JobList';
 
 const Home = () => {
   const { user, logout } = useAuth();
@@ -16,7 +16,7 @@ const Home = () => {
     <MainLayout>
       <HeroSection />
       <CategorySection />
-      <JobPage /> 
+      <JobList /> 
     </MainLayout>
   );
 };
