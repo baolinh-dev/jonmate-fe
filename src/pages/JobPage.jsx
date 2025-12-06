@@ -1,205 +1,311 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import api from '../api/api';
-import JobCard from '../components/JobCard';
-import ReactPaginate from 'react-paginate';
+// src/pages/JobPage.js
+
+import React, { useEffect, useState } from 'react';
+import api from '../api/api'; 
+import JobCard from '../components/JobCard'; 
+import ReactPaginate from 'react-paginate'; 
+import useDebounce from '../hooks/useDebounce'; 
 import '../../src/styles/pagination.css'; 
-import ReusableHeading from '../components/ReusableHeading';
+import ReusableHeading from '../components/ReusableHeading'; 
 
-// Cài đặt default PAGE_SIZE
-const PAGE_SIZE = 5; 
+// --- KHAI BÁO Hằng SỐ ---
+const PAGE_SIZE = 5;
+const DEBOUNCE_DELAY = 400;
 
-// Component JobList sẽ không nhận props 'jobs' nữa
-const JobPage = () => { 
-    const [jobs, setJobs] = useState([]);
-    const [loading, setLoading] = useState(true);
+const JobPage = () => {
+  const [jobs, setJobs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // State để đảm bảo lần tải đầu tiên (Initial Load) được kích hoạt
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
 
-    // Trạng thái tìm kiếm và lọc
-    const [keyword, setKeyword] = useState('');
-    const [category, setCategory] = useState(''); 
-    const [categories, setCategories] = useState([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
+  // State chứa tất cả các bộ lọc
+  const [filters, setFilters] = useState({
+    keyword: '',
+    category: '',
+    skills: '',
+    minBudget: '',
+    maxBudget: '',
+    status: '', 
+    clientId: '', 
+    sort: 'newest',
+    page: 1,
+  });
 
-    // Trạng thái phân trang
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalJobs, setTotalJobs] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalJobs, setTotalJobs] = useState(0);
 
-    // --- HÀM 1: Fetch Categories cho Dropdown ---
-    const fetchCategories = useCallback(async () => {
-        setLoadingCategories(true);
-        try {
-            const res = await api.get('/categories');
-            // Thêm option "Tất cả"
-            setCategories([{ _id: '', name: 'Tất cả Danh mục' }, ...res.data]); 
-        } catch (err) {
-            console.error('Error fetching categories:', err);
-            setCategories([]);
-        } finally {
-            setLoadingCategories(false);
-        }
-    }, []);
-
-    // --- HÀM 2: Fetch Jobs (Đã cập nhật để bao gồm Tìm kiếm/Lọc) ---
-    const fetchJobs = useCallback(async (page = 1, searchKeyword = '', filterCategory = '') => {
-        setLoading(true);
-        try {
-            const params = { 
-                page: page,
-                limit: PAGE_SIZE,
-                keyword: searchKeyword || undefined,
-                category: filterCategory || undefined,
-            };
-
-            // Lọc bỏ các tham số null/undefined để API không bị lỗi
-            const validParams = Object.fromEntries(
-                Object.entries(params).filter(([_, v]) => v !== undefined && v !== '')
-            );
-
-            const res = await api.get('/jobs/search', { // Giả định API tìm kiếm là /jobs/search
-                params: validParams
-            });
-
-            const body = res?.data ?? null;
-            let jobsFromApi = [];
-            
-            if (body && body.jobs && Array.isArray(body.jobs)) {
-                jobsFromApi = body.jobs;
-                setCurrentPage(body.page || 1); 
-                setTotalPages(body.totalPages || 1);
-                setTotalJobs(body.total || 0);
-            } else {
-                jobsFromApi = Array.isArray(body) ? body : [];
-                setCurrentPage(1);
-                setTotalPages(1);
-                setTotalJobs(jobsFromApi.length); 
-            }
-
-            setJobs(jobsFromApi);
-        } catch (err) {
-            console.error('Fetch jobs error:', err);
-            setJobs([]);
-            setTotalPages(1);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    // --- Xử lý Tìm kiếm/Lọc: Luôn gọi lại API từ trang 1 ---
-    const handleSearch = (e) => {
-        e.preventDefault();
-        // Reset page về 1 khi tìm kiếm mới
-        setCurrentPage(1); 
-        fetchJobs(1, keyword, category);
+  // Áp dụng Debounce cho các filters gõ bằng tay
+  const debouncedKeyword = useDebounce(filters.keyword, DEBOUNCE_DELAY);
+  const debouncedSkills = useDebounce(filters.skills, DEBOUNCE_DELAY);
+  const debouncedMinBudget = useDebounce(filters.minBudget, DEBOUNCE_DELAY);
+  const debouncedMaxBudget = useDebounce(filters.maxBudget, DEBOUNCE_DELAY);
+  
+  // --- 1. FETCH CATEGORIES ---
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await api.get('/categories');
+        setCategories([{ _id: '', name: 'Tất cả Danh mục' }, ...res.data]);
+      } catch (error) {
+        console.error('Category load error:', error);
+      }
     };
+    loadCategories();
+  }, []); 
 
-    // --- Xử lý Chuyển Trang ---
-    const handlePageClick = (data) => {
-        const newPage = data.selected + 1; 
+  // --- 2. MAIN: FETCH JOBS ---
+  useEffect(() => {
+    const loadJobs = async () => {
+      setLoading(true);
+
+      const params = {
+        page: filters.page,
+        limit: PAGE_SIZE,
+        sort: filters.sort,
         
-        if (newPage !== currentPage) {
-            setCurrentPage(newPage);
-            // Gọi lại fetchJobs với tham số tìm kiếm/lọc hiện tại
-            fetchJobs(newPage, keyword, category); 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Sử dụng giá trị debounced
+        keyword: debouncedKeyword,
+        skills: debouncedSkills,
+        minBudget: debouncedMinBudget,
+        maxBudget: debouncedMaxBudget,
+
+        // Sử dụng giá trị không debounce (tức thì)
+        category: filters.category,
+        status: filters.status,
+        clientId: filters.clientId, 
+      };
+      
+      // Lọc bỏ các key undefined, null, hoặc chuỗi rỗng ('')
+      Object.keys(params).forEach(key => 
+        (params[key] === undefined || params[key] === null || params[key] === '') && delete params[key]
+      );
+
+      try {
+        const res = await api.get('/jobs/search', { params });
+
+        const body = res.data;
+        setJobs(body.jobs || []);
+        setTotalPages(body.totalPages || 1);
+        setTotalJobs(body.total || 0);
+        
+        // ĐÁNH DẤU: Đã tải dữ liệu lần đầu thành công
+        if (!hasLoadedInitialData) {
+            setHasLoadedInitialData(true);
         }
+        
+      } catch (error) {
+        console.error('Job load error:', error);
+        setJobs([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    // --- useEffects ---
-    useEffect(() => {
-        fetchCategories();
-    }, [fetchCategories]);
+    // Luôn gọi loadJobs khi bất kỳ dependency nào thay đổi.
+    // Lỗi reload đã được giải quyết bằng cách sử dụng các giá trị đã debounce
+    // và các giá trị primitive trong dependency array.
+    loadJobs();
+    
+  }, [
+    // Dependency array đã được tinh chỉnh:
+    filters.category,
+    filters.sort,
+    filters.status,
+    filters.clientId,
+    filters.page,
+    
+    // Giá trị đã được debounce (chỉ thay đổi sau khi dừng gõ/nhập)
+    debouncedKeyword,
+    debouncedSkills,
+    debouncedMinBudget,
+    debouncedMaxBudget
+  ]);
 
-    useEffect(() => {
-        // Load Jobs lần đầu tiên khi component mount
-        fetchJobs(1, keyword, category); 
-    }, [fetchJobs]); // Chú ý: fetchJobs không phụ thuộc vào keyword/category trong useEffect này để chỉ fetch data một lần
+  // --- 3. EVENTS & HANDLERS ---
+  const handleFilterChange = (field, value) => {
+    // Luôn reset page về 1 khi bất kỳ filter nào (trừ page) thay đổi
+    setFilters((prev) => ({ 
+        ...prev, 
+        [field]: value, 
+        page: (field !== 'page' ? 1 : value)
+    }));
+  };
 
-    if (loading) return <div className="text-center py-10">Đang tải công việc...</div>;
+  const handlePageClick = (data) => {
+    handleFilterChange('page', data.selected + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  // Tùy chọn Sắp xếp & Status
+  const sortOptions = [
+    { value: 'newest', label: 'Mới nhất' },
+    { value: 'highestBudget', label: 'Lương cao nhất' },
+    { value: 'lowestBudget', label: 'Lương thấp nhất' },
+    { value: 'oldest', label: 'Cũ nhất' },
+  ];
+  const statusOptions = [
+    { value: '', label: 'Tất cả Trạng thái' },
+    { value: 'open', label: 'Đang mở' },
+    { value: 'completed', label: 'Đã hoàn thành' },
+    { value: 'in_progress', label: 'Đang tiến hành' },
+  ];
 
-    return (
-        <div className="flex flex-col gap-4"> 
-            <ReusableHeading 
-                title="Khám phá Cơ hội Công việc" 
-            />
-            {/* --- Search & Filter UI --- */}
-            <form 
-                onSubmit={handleSearch} 
-                className="flex flex-col md:flex-row gap-4 items-center p-4 bg-gray-50 rounded-xl shadow-inner"
-            >
-                
-                {/* Input Keywords */}
+  // --- 4. RENDER UI ---
+  return (
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto px-4">
+      <ReusableHeading title="Khám phá Cơ hội Công việc" />
+
+      {/* TỔNG HỢP CÁC BỘ LỌC */}
+      <div className="p-4 bg-white rounded-xl shadow-xl border border-gray-100">
+        <h3 className="text-xl font-bold mb-4 text-blue-800 border-b pb-2">Bộ Lọc Công Việc Chi Tiết</h3>
+        
+        {/* Hàng 1: Keyword, Category, Status, Sort */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {/* Keyword */}
+            <div className="col-span-1 md:col-span-2">
+                <label className="text-sm font-medium text-gray-700 block mb-1">Từ khóa (Tiêu đề, Mô tả)</label>
                 <input
                     type="text"
-                    value={keyword}
-                    onChange={e => setKeyword(e.target.value)}
-                    placeholder="Tìm kiếm theo từ khóa (chức danh...)"
-                    className="border border-gray-300 p-3 rounded-lg w-full md:flex-1 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                    placeholder="VD: Frontend Developer, React..."
+                    value={filters.keyword}
+                    onChange={(e) => handleFilterChange('keyword', e.target.value)}
+                    className="border border-gray-300 p-3 rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
-
-                {/* DROPDOWN CATEGORY */}
-                <select
-                    value={category}
-                    onChange={e => setCategory(e.target.value)}
-                    className="border border-gray-300 p-3 rounded-lg w-full md:w-auto shadow-sm bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500"
-                    disabled={loadingCategories} 
-                >
-                    {loadingCategories ? (
-                         <option value="">Đang tải danh mục...</option>
-                    ) : (
-                        categories.map((cat) => (
-                            <option key={cat._id || 'all'} value={cat._id}>
-                                {cat.name}
-                            </option>
-                        ))
-                    )}
-                </select>
-                
-                {/* Nút Search */}
-                <button
-                    type="submit"
-                    className="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-200 w-full md:w-auto shadow-md"
-                >
-                    Tìm Kiếm
-                </button>
-            </form>
+            </div>
             
-            {/* Thông báo tổng số công việc */}
-            {totalJobs > 0 && (
-                <p className="text-sm text-gray-500 mb-2">
-                    Hiển thị công việc trang {currentPage} / {totalPages} (Tổng cộng: {totalJobs} công việc)
-                </p>
-            )}
-
-            {jobs.length === 0 ? (
-                <p className="text-center text-gray-500 text-lg py-10">
-                    Không tìm thấy công việc nào phù hợp.
-                </p>
-            ) : (
-                jobs.map((job) => <JobCard key={job._id} job={job} />)
-            )}
-
-            {/* Sử dụng ReactPaginate */}
-            {totalPages > 1 && (
-                <ReactPaginate
-                    previousLabel={'← Trang Trước'}
-                    nextLabel={'Trang Sau →'}
-                    breakLabel={'...'}
-                    breakClassName={'break-me'}
-                    pageCount={totalPages}
-                    marginPagesDisplayed={2}
-                    pageRangeDisplayed={3}
-                    onPageChange={handlePageClick}
-                    forcePage={currentPage - 1} 
-                    
-                    containerClassName={'flex justify-center items-center space-x-2 mt-8'}
-                    pageLinkClassName={'px-3 py-1 text-sm font-semibold rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-blue-50 hover:border-blue-500 transition'}
-                    previousLinkClassName={'px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 bg-white hover:bg-gray-100 transition'}
-                    nextLinkClassName={'px-4 py-2 text-sm font-semibold rounded-lg border border-gray-300 bg-white hover:bg-gray-100 transition'}
-                    activeLinkClassName={'bg-blue-600 text-white border-blue-600'}
-                />
-            )}
+            {/* Category */}
+            <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">Danh mục</label>
+                <select
+                    value={filters.category}
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    className="border border-gray-300 p-3 rounded-lg bg-white shadow-sm w-full focus:ring-blue-500 focus:border-blue-500"
+                >
+                    {categories.map((c) => (
+                        <option key={c._id || 'all'} value={c._id}>
+                            {c.name}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            
+            {/* Status */}
+            <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">Trạng thái</label>
+                <select
+                    value={filters.status}
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                    className="border border-gray-300 p-3 rounded-lg bg-white shadow-sm w-full focus:ring-blue-500 focus:border-blue-500"
+                >
+                    {statusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
         </div>
-    );
+
+        {/* Hàng 2: Skills, Budget Range, Sort */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Skills Required */}
+            <div className="col-span-1 md:col-span-2">
+                <label className="text-sm font-medium text-gray-700 block mb-1">Kỹ năng (cần chứa tất cả)</label>
+                <input
+                    type="text"
+                    placeholder="VD: React, Node.js (cách nhau bởi dấu phẩy)"
+                    value={filters.skills}
+                    onChange={(e) => handleFilterChange('skills', e.target.value)}
+                    className="border border-gray-300 p-3 rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+            </div>
+
+            {/* Min Budget */}
+            <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">Ngân sách Tối thiểu</label>
+                <input
+                    type="number"
+                    placeholder="Tối thiểu"
+                    value={filters.minBudget}
+                    onChange={(e) => handleFilterChange('minBudget', e.target.value)}
+                    className="border border-gray-300 p-3 rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+            </div>
+
+            {/* Max Budget */}
+            <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">Ngân sách Tối đa</label>
+                <input
+                    type="number"
+                    placeholder="Tối đa"
+                    value={filters.maxBudget}
+                    onChange={(e) => handleFilterChange('maxBudget', e.target.value)}
+                    className="border border-gray-300 p-3 rounded-lg w-full shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                />
+            </div>
+            
+            {/* Sort */}
+            <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1">Sắp xếp</label>
+                <select
+                    value={filters.sort}
+                    onChange={(e) => handleFilterChange('sort', e.target.value)}
+                    className="border border-gray-300 p-3 rounded-lg bg-white shadow-sm w-full focus:ring-blue-500 focus:border-blue-500"
+                >
+                    {sortOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+        </div>
+      </div>
+      
+      {/* Stats */}
+      {totalJobs > 0 && (
+        <p className="text-md font-semibold text-gray-700">
+            Tìm thấy **{totalJobs}** công việc phù hợp. (Trang {filters.page}/{totalPages})
+        </p>
+      )}
+
+      {/* Job List */}
+      {loading ? (
+        <div className="text-center py-10 text-lg font-medium text-blue-600">
+            <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-blue-500 rounded-full" role="status"></div>
+            <span className="ml-3">Đang tải công việc...</span>
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="text-center py-10 text-gray-500 border border-dashed border-gray-300 p-6 rounded-xl bg-white">
+            <p className="text-xl font-semibold mb-2">Không tìm thấy công việc</p>
+            <p>Vui lòng thử thay đổi các tiêu chí tìm kiếm của bạn.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6">
+            {jobs.map((job) => <JobCard key={job._id} job={job} />)}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <ReactPaginate
+          previousLabel={'← Trước'}
+          nextLabel={'Sau →'}
+          pageCount={totalPages}
+          onPageChange={handlePageClick}
+          forcePage={filters.page - 1}
+          containerClassName={'flex justify-center items-center gap-2 mt-8'}
+          pageLinkClassName={'px-4 py-2 rounded-xl bg-white border border-gray-300 hover:bg-blue-100 transition-colors duration-150 text-gray-700'}
+          activeLinkClassName={'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'}
+          previousLinkClassName={'p-2 text-blue-600 hover:text-blue-800'}
+          nextLinkClassName={'p-2 text-blue-600 hover:text-blue-800'}
+          disabledLinkClassName={'text-gray-400 cursor-not-allowed'}
+        />
+      )}
+    </div>
+  );
 };
 
 export default JobPage;
