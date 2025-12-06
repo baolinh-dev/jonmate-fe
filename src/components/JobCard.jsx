@@ -1,15 +1,17 @@
 import React from 'react';
 // 💡 IMPORTS MỚI TỪ FONT AWESOME
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
+import {
   faUserTie,   // Icon cho Client
   faTags,      // Icon cho Category
   faMoneyBillWave, // Icon cho Budget
   faCodeBranch // Icon cho Skills (Sẽ thêm)
-} from '@fortawesome/free-solid-svg-icons'; 
+} from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom';
 
 
 const JobCard = ({ job }) => {
+  const navigate = useNavigate();
   const clientName = job.client?.name || 'Client Ẩn Danh';
 
   // Map trạng thái cho màu sắc trực quan
@@ -27,7 +29,13 @@ const JobCard = ({ job }) => {
     completed: "Hoàn thành",
     closed: "Đã đóng",
   };
+  const handleViewDetails = (e) => {
+    // Ngăn chặn sự kiện click lan truyền lên thẻ cha (nếu thẻ cha cũng có sự kiện click)
+    e.stopPropagation();
 
+    // Điều hướng đến đường dẫn /jobs/ID_CÔNG_VIỆC
+    navigate(`/jobs/${job._id}`);
+  };
   // Format ngày đăng
   const createdAt = new Date(job.createdAt).toLocaleDateString("vi-VN");
 
@@ -35,10 +43,10 @@ const JobCard = ({ job }) => {
   const skillsList = job.skillsRequired ? job.skillsRequired.slice(0, 3) : []; // Giới hạn 3 skills
 
   // Format Budget
-  const formattedBudget = job.budget 
-    ? `$${job.budget.toLocaleString('en-US')}` 
+  const formattedBudget = job.budget
+    ? `$${job.budget.toLocaleString('en-US')}`
     : 'Thỏa thuận';
-    
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 transition duration-300 ease-in-out transform hover:shadow-xl hover:border-blue-300 cursor-pointer">
 
@@ -67,7 +75,7 @@ const JobCard = ({ job }) => {
               </span>
             </div>
           </div>
-          
+
           {/* RIGHT SIDE (Budget & Category) */}
           <div className="flex flex-col items-end pt-2 md:pt-0">
             {/* Budget */}
@@ -75,7 +83,7 @@ const JobCard = ({ job }) => {
               <FontAwesomeIcon icon={faMoneyBillWave} className="mr-2 text-green-500 text-sm" />
               {formattedBudget}
             </span>
-            
+
             {/* Category */}
             <span className="flex items-center text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md whitespace-nowrap">
               <FontAwesomeIcon icon={faTags} className="mr-1 text-blue-400" />
@@ -87,46 +95,47 @@ const JobCard = ({ job }) => {
 
         {/* MIDDLE ROW: SKILLS & DESCRIPTION */}
         <div className="flex flex-col gap-3 border-t border-b border-gray-100 py-3">
-            
-            {/* Skills */}
-            {skillsList.length > 0 && (
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <FontAwesomeIcon icon={faCodeBranch} className="text-gray-500" />
-                    <span className="font-semibold mr-2">Yêu cầu:</span>
-                    <div className="flex flex-wrap gap-2">
-                        {skillsList.map((skill, index) => (
-                            <span 
-                                key={index} 
-                                className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full"
-                            >
-                                {skill.trim()}
-                            </span>
-                        ))}
-                         {job.skillsRequired.length > 3 && (
-                            <span className="text-xs text-gray-500 px-2 py-0.5">...</span>
-                        )}
-                    </div>
-                </div>
-            )}
 
-            {/* Description (Đã giới hạn hiển thị) */}
-            <p className="text-sm text-gray-600 line-clamp-2">
-                {job.description}
-            </p>
+          {/* Skills */}
+          {skillsList.length > 0 && (
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <FontAwesomeIcon icon={faCodeBranch} className="text-gray-500" />
+              <span className="font-semibold mr-2">Yêu cầu:</span>
+              <div className="flex flex-wrap gap-2">
+                {skillsList.map((skill, index) => (
+                  <span
+                    key={index}
+                    className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full"
+                  >
+                    {skill.trim()}
+                  </span>
+                ))}
+                {job.skillsRequired.length > 3 && (
+                  <span className="text-xs text-gray-500 px-2 py-0.5">...</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Description (Đã giới hạn hiển thị) */}
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {job.description}
+          </p>
         </div>
 
         {/* BOTTOM ROW: DATE & CTA */}
         <div className="flex justify-between items-center pt-1">
-            <span className="text-xs text-gray-400">
-                Đăng vào: <strong className="text-gray-600">{createdAt}</strong>
-            </span>
-            
-            <button
-              className="text-blue-600 hover:text-blue-800 text-md font-bold transition duration-150 whitespace-nowrap"
-              onClick={() => console.log('View Job:', job._id)}
-            >
-              Xem chi tiết →
-            </button>
+          <span className="text-xs text-gray-400">
+            Đăng vào: <strong className="text-gray-600">{createdAt}</strong>
+          </span>
+
+          <button
+            className="text-blue-600 hover:text-blue-800 text-md font-bold transition duration-150 whitespace-nowrap"
+            onClick={handleViewDetails} // 💡 Gán hàm điều hướng vào đây
+          >
+            Xem chi tiết →
+          </button>
+
         </div>
       </div>
     </div>
