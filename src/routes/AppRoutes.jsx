@@ -11,6 +11,7 @@ import JobDetail from '../pages/JobDetail';
 import PrivateRoute from './PrivateRoute';
 import { useAuth } from '../context/AuthContext';
 import ClientAllApplications from '../pages/ClientAllApplications';
+import FreelancerApplications from '../pages/FreelancerApplications';
 
 const AppRoutes = () => {
     const { user, loading } = useAuth();
@@ -27,7 +28,7 @@ const AppRoutes = () => {
                 <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
 
                 {/* 1. PUBLIC ROUTES (Không cần đăng nhập) */}
-                
+
                 {/* Login/Register: Redirect về Home nếu đã đăng nhập */}
                 <Route
                     path="/login"
@@ -37,12 +38,12 @@ const AppRoutes = () => {
                     path="/register"
                     element={user ? <Navigate to="/home" /> : <Register />}
                 />
-                
+
                 {/* 💡 Job Page (danh sách job): TRUY CẬP CÔNG KHAI */}
                 <Route path="/jobs" element={<JobPage />} />
 
                 {/* 💡 Job Detail: TRUY CẬP CÔNG KHAI */}
-                <Route path="/jobs/:id" element={<JobDetail />} /> 
+                <Route path="/jobs/:id" element={<JobDetail />} />
 
 
                 {/* 2. PRIVATE ROUTES (Cần đăng nhập) */}
@@ -65,7 +66,7 @@ const AppRoutes = () => {
                             <CreateJob />
                         </PrivateRoute>
                     }
-                /> 
+                />
 
                 {/* Client Applications */}
                 <Route
@@ -73,6 +74,15 @@ const AppRoutes = () => {
                     element={
                         <PrivateRoute requiredRole="client"> {/* Có thể thêm kiểm tra vai trò tại đây */}
                             <ClientAllApplications />
+                        </PrivateRoute>
+                    }
+                />
+
+                <Route
+                    path="/my-applications" // Path đã được dùng trong Header
+                    element={
+                        <PrivateRoute requiredRole="freelancer">
+                            <FreelancerApplications />
                         </PrivateRoute>
                     }
                 />
