@@ -52,8 +52,10 @@ const LoginContent = () => {
             onSubmit={handleSubmit} 
             className="bg-white p-8 md:p-10 rounded-lg shadow-xl w-full max-w-md border-t-4 border-indigo-600 transform hover:scale-[1.01] transition duration-300"
         >
-            <div className="text-center mb-8"> 
-                
+            <div className="text-center"> 
+                <LogoIcon className="mx-auto h-12 w-12 text-indigo-600" asLink={false} />
+            </div>
+            <div className="mb-6 text-center">
                 <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
                     Chào mừng trở lại 👋
                 </h2>

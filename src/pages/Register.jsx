@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
+import LogoIcon from '../components/Logo';
 
 const RegisterContent = () => {
   const { loadUser } = useAuth();
@@ -15,7 +16,7 @@ const RegisterContent = () => {
     password: '',
     role: 'freelancer', // Giá trị mặc định
   });
-  
+
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false); // 2. State Loading
 
@@ -24,7 +25,7 @@ const RegisterContent = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (error) {
-        setError('');
+      setError('');
     }
   };
 
@@ -32,21 +33,21 @@ const RegisterContent = () => {
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (isLoading) return;
-    
+
     setIsLoading(true);
     setError('');
 
     try {
       // 4. Gửi formData trực tiếp
-      await api.post('/users/register', formData); 
-      
+      await api.post('/users/register', formData);
+
       // Tự động Login sau khi đăng ký thành công
-      await api.post('/users/login', { email: formData.email, password: formData.password }); 
-      
+      await api.post('/users/login', { email: formData.email, password: formData.password });
+
       await loadUser();
-      navigate('/home'); 
+      navigate('/home');
     } catch (err) {
-      console.error('Registration Error:', err); 
+      console.error('Registration Error:', err);
       setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
@@ -55,10 +56,13 @@ const RegisterContent = () => {
 
   return (
     // 5. Cải tiến Tailwind CSS: Áp dụng style Card tương tự Login, nhưng dùng màu xanh lá (Green)
-    <form 
-      onSubmit={handleSubmit} 
+    <form
+      onSubmit={handleSubmit}
       className="bg-white p-8 md:p-10 rounded-lg shadow-xl w-full max-w-md border-t-4 border-green-600 transform hover:scale-[1.01] transition duration-300"
     >
+      <div className="text-center">
+        <LogoIcon className="mx-auto h-12 w-12 text-indigo-600" asLink={false} />
+      </div>
       <div className="text-center mb-8">
         <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
           Tạo tài khoản mới 🎉
@@ -138,7 +142,7 @@ const RegisterContent = () => {
           <option value="client">Client (Tôi muốn thuê người)</option>
         </select>
       </div>
-      
+
       {/* Nút Register */}
       <button
         type="submit"
@@ -146,7 +150,7 @@ const RegisterContent = () => {
         // 6. Màu nút Green cho Đăng ký (phân biệt với Login - Indigo)
         className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-sm font-medium text-white 
           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-300 
-          ${isLoading 
+          ${isLoading
             ? 'bg-green-400 cursor-not-allowed'
             : 'bg-green-600 hover:bg-green-700 transform hover:scale-[1.01]'
           }`}
@@ -173,11 +177,11 @@ const RegisterContent = () => {
 
 // Component chính bao bọc Layout và Content
 const Register = () => {
-    return (
-        <AuthLayout>
-            <RegisterContent />
-        </AuthLayout>
-    );
+  return (
+    <AuthLayout>
+      <RegisterContent />
+    </AuthLayout>
+  );
 };
 
 export default Register;

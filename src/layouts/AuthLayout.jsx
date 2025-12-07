@@ -15,18 +15,8 @@ const AuthLayout = ({ children }) => {
     // Thêm overflow-y-auto để đảm bảo cuộn được trên thiết bị nhỏ.
     <div className="flex flex-col items-center justify-center min-h-screen 
                     bg-gray-100 dark:bg-gray-900 overflow-y-auto p-4 sm:p-6 transition-colors duration-300">
-      
-      {/* Container Chính (Card/Box) */}
-      <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg 
-                      p-0 sm:p-4 lg:p-8 
-                      bg-white dark:bg-gray-800 
-                      rounded-xl shadow-2xl dark:shadow-2xl-dark 
-                      my-8"> {/* Thêm margin y để nó không bị dính vào mép trên/dưới */}
-        
-        {/* Nội dung Auth Form */}
-        {children}
-        
-      </div>
+
+      {children}
 
       {/* 3. Thêm Footer/Branding nhỏ cho tính chuyên nghiệp */}
       <footer className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
