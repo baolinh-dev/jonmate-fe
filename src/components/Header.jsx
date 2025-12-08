@@ -34,6 +34,7 @@ const Header = ({ onMenuToggle }) => {
         { name: 'Tất cả công việc', path: '/jobs', roles: ['freelancer', 'client'] },
         { name: 'Ứng tuyển', path: '/my-applications', roles: ['freelancer'] },
         { name: 'Quản lý Application', path: '/client/application', roles: ['client'] },
+        { name: 'About me', path: '/about-us', roles: ['freelancer', 'client'] },
     ];
 
     // 💡 HÀM XỬ LÝ ĐĂNG XUẤT ĐÃ CẬP NHẬT

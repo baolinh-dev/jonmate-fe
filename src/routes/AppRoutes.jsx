@@ -1,4 +1,4 @@
-// src/routes/AppRoutes.js (Đã sửa)
+// src/routes/AppRoutes.js (Đã sửa & THÊM ROUTE JobMate)
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -8,6 +8,8 @@ import Home from '../pages/Home';
 import CreateJob from '../pages/CreateJob';
 import JobPage from '../pages/JobPage';
 import JobDetail from '../pages/JobDetail';
+// Import component JobMate (Trang About Us)
+import JobMate from '../pages/JobMate'; 
 import PrivateRoute from './PrivateRoute';
 import { useAuth } from '../context/AuthContext';
 import ClientAllApplications from '../pages/ClientAllApplications';
@@ -24,7 +26,8 @@ const AppRoutes = () => {
 
                 {/* SỬA ĐỔI: Route mặc định "/" */}
                 {/* Nếu đã đăng nhập: Chuyển về /home. 
-                    Nếu chưa đăng nhập (đã đăng xuất): Chuyển về /login. */}
+                    Nếu chưa đăng nhập (đã đăng xuất): Chuyển về /login. 
+                    Lưu ý: Bạn có thể cân nhắc chuyển về /jobs hoặc /about-us nếu muốn trang mặc định là public. */}
                 <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
 
                 {/* 1. PUBLIC ROUTES (Không cần đăng nhập) */}
@@ -45,6 +48,9 @@ const AppRoutes = () => {
                 {/* 💡 Job Detail: TRUY CẬP CÔNG KHAI */}
                 <Route path="/jobs/:id" element={<JobDetail />} />
 
+                {/* ⭐ ROUTE MỚI: ABOUT US / JOBMATE (Truy cập công khai) */}
+                <Route path="/about-us" element={<JobMate />} />
+
 
                 {/* 2. PRIVATE ROUTES (Cần đăng nhập) */}
 
@@ -62,7 +68,7 @@ const AppRoutes = () => {
                 <Route
                     path="/create-job"
                     element={
-                        <PrivateRoute requiredRole="client"> {/* Có thể thêm kiểm tra vai trò tại đây */}
+                        <PrivateRoute requiredRole="client"> {/* Chỉ Client mới được tạo Job */}
                             <CreateJob />
                         </PrivateRoute>
                     }
@@ -72,7 +78,7 @@ const AppRoutes = () => {
                 <Route
                     path="/client/application"
                     element={
-                        <PrivateRoute requiredRole="client"> {/* Có thể thêm kiểm tra vai trò tại đây */}
+                        <PrivateRoute requiredRole="client"> {/* Chỉ Client mới xem được ứng tuyển */}
                             <ClientAllApplications />
                         </PrivateRoute>
                     }
@@ -81,7 +87,7 @@ const AppRoutes = () => {
                 <Route
                     path="/my-applications" // Path đã được dùng trong Header
                     element={
-                        <PrivateRoute requiredRole="freelancer">
+                        <PrivateRoute requiredRole="freelancer"> {/* Chỉ Freelancer mới xem được đơn ứng tuyển của mình */}
                             <FreelancerApplications />
                         </PrivateRoute>
                     }
