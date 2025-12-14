@@ -7,26 +7,26 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTag, faDollarSign, faCodeBranch, faBriefcase, faSave } from '@fortawesome/free-solid-svg-icons';
 
 // 💡 IMPORT TINYMCE EDITOR
-import { Editor } from '@tinymce/tinymce-react'; 
+import { Editor } from '@tinymce/tinymce-react';
 
 const CreateJob = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    
+
     // 💡 REF DÙNG ĐỂ TRUY CẬP NỘI DUNG EDITOR KHI SUBMIT
-    const editorRef = useRef(null); 
+    const editorRef = useRef(null);
 
     // --- State cho Form ---
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState(''); // Lưu trữ nội dung HTML
-    const [category, setCategory] = useState(''); 
+    const [category, setCategory] = useState('');
     const [skills, setSkills] = useState('');
     const [budget, setBudget] = useState('');
-    
+
     // --- State cho UI & Data ---
     const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(false); 
-    const [loadingCategories, setLoadingCategories] = useState(true); 
+    const [loading, setLoading] = useState(false);
+    const [loadingCategories, setLoadingCategories] = useState(true);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
@@ -55,8 +55,9 @@ const CreateJob = () => {
                 const res = await api.get('/categories');
                 if (res.data && res.data.length > 0) {
                     setCategories(res.data);
-                    setCategory(res.data[0]._id); 
+                    setCategory(res.data[0]._id);
                 }
+                console.log('Categories loaded:', res.data);
             } catch (error) {
                 console.error('Category load error:', error);
                 setError('Không thể tải danh sách danh mục.');
@@ -72,10 +73,10 @@ const CreateJob = () => {
         e.preventDefault();
         setError('');
         setSuccessMessage('');
-        
+
         // 💡 Lấy nội dung Description từ editorRef
         const editorContent = editorRef.current ? editorRef.current.getContent() : '';
-        
+
         // 💡 Kiểm tra nội dung rỗng: nội dung TinyMCE rỗng thường là '<p></p>' hoặc chỉ chứa khoảng trắng
         const isDescriptionEmpty = !editorContent || editorContent.replace(/<[^>]*>/g, '').trim() === '';
 
@@ -95,8 +96,8 @@ const CreateJob = () => {
             const jobData = {
                 title,
                 // 💡 GỬI NỘI DUNG HTML ĐÃ LẤY TỪ EDITOR
-                description: editorContent, 
-                category, 
+                description: editorContent,
+                category,
                 skillsRequired: skillsArray,
                 budget: budget ? Number(budget) : undefined,
             };
@@ -104,9 +105,9 @@ const CreateJob = () => {
             const res = await api.post('/jobs', jobData);
 
             setSuccessMessage(`Đã tạo công việc thành công: ${res.data.title}`);
-            
+
             setTimeout(() => {
-                navigate('/jobs/' + res.data._id); 
+                navigate('/jobs/' + res.data._id);
             }, 1500);
 
         } catch (err) {
@@ -125,7 +126,7 @@ const CreateJob = () => {
                 <div className="max-w-xl mx-auto p-8 bg-red-100 border border-red-400 rounded-xl text-center mt-10">
                     <h2 className="text-2xl font-bold text-red-700">Truy cập bị từ chối</h2>
                     <p className="text-red-600 mt-2">Chức năng này chỉ dành cho tài khoản Client.</p>
-                    <button 
+                    <button
                         onClick={() => navigate('/home')}
                         className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
                     >
@@ -135,7 +136,7 @@ const CreateJob = () => {
             </MainLayout>
         );
     }
-    
+
     // --- 4. Render UI chính (Thay thế textarea bằng Editor) ---
     return (
         <MainLayout>
@@ -156,10 +157,10 @@ const CreateJob = () => {
                         <span className="block sm:inline">{successMessage}</span>
                     </div>
                 )}
-                
+
                 {/* Form Đăng Tuyển */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    
+
                     {/* Tiêu đề Công việc */}
                     <div>
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
@@ -175,7 +176,7 @@ const CreateJob = () => {
                             required
                         />
                     </div>
-                    
+
                     {/* 💡 Mô tả Công việc (TinyMCE Editor) */}
                     <div>
                         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
@@ -240,7 +241,7 @@ const CreateJob = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     {/* Kỹ năng Yêu cầu (Giữ nguyên) */}
                     <div>
                         <label htmlFor="skills" className="block text-sm font-medium text-gray-700 mb-1">
@@ -264,8 +265,8 @@ const CreateJob = () => {
                     <button
                         type="submit"
                         className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl w-full text-lg font-semibold transition-all duration-200 ${
-                            loading 
-                                ? 'bg-purple-300 cursor-not-allowed' 
+                            loading
+                                ? 'bg-purple-300 cursor-not-allowed'
                                 : 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg'
                         }`}
                         disabled={loading || loadingCategories}

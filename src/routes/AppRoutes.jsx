@@ -8,8 +8,9 @@ import Home from '../pages/Home';
 import CreateJob from '../pages/CreateJob';
 import JobPage from '../pages/JobPage';
 import JobDetail from '../pages/JobDetail';
+import FundJob from '../pages/FundJob';
 // Import component JobMate (Trang About Us)
-import JobMate from '../pages/JobMate'; 
+import JobMate from '../pages/JobMate';
 import PrivateRoute from './PrivateRoute';
 import { useAuth } from '../context/AuthContext';
 import ClientAllApplications from '../pages/ClientAllApplications';
@@ -25,8 +26,8 @@ const AppRoutes = () => {
             <Routes>
 
                 {/* SỬA ĐỔI: Route mặc định "/" */}
-                {/* Nếu đã đăng nhập: Chuyển về /home. 
-                    Nếu chưa đăng nhập (đã đăng xuất): Chuyển về /login. 
+                {/* Nếu đã đăng nhập: Chuyển về /home.
+                    Nếu chưa đăng nhập (đã đăng xuất): Chuyển về /login.
                     Lưu ý: Bạn có thể cân nhắc chuyển về /jobs hoặc /about-us nếu muốn trang mặc định là public. */}
                 <Route path="/" element={user ? <Navigate to="/home" /> : <Navigate to="/login" />} />
 
@@ -70,6 +71,16 @@ const AppRoutes = () => {
                     element={
                         <PrivateRoute requiredRole="client"> {/* Chỉ Client mới được tạo Job */}
                             <CreateJob />
+                        </PrivateRoute>
+                    }
+                />
+
+                {/* Fund Job */}
+                <Route
+                    path="/jobs/:id/fund"
+                    element={
+                        <PrivateRoute requiredRole="client">
+                            <FundJob />
                         </PrivateRoute>
                     }
                 />
